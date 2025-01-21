@@ -56,16 +56,16 @@ Each domain (e.g., `User`, `Character`, `Goal`) has its own service responsible 
    - Does not call the service layer.
 
 4. ** External layer**
-- Responsible for managing communication with third-party systems, APIs, or services. This layer:
-- Abstracts details like HTTP request/response formats, authentication, and API endpoints.
-- Provides a clean and reusable interface for external communication.
-- Decouples external systems from domain logic.
-- Calls no other layers.
+   - Responsible for managing communication with third-party systems, APIs, or services. This layer:
+   - Abstracts details like HTTP request/response formats, authentication, and API endpoints.
+   - Provides a clean and reusable interface for external communication.
+   - Decouples external systems from domain logic.
+   - Calls no other layers.
 
 5. **Common Layer**
-- Contains reusable components across domains:
-- Shared models - Defines domain-agnostic objects (e.g., events like `GoalCreationEvent`) that are shared across services. 
-- Shared utilities - Includes helpers for common tasks (e.g., event publishing, validation).
+   - Contains reusable components across domains:
+   - Shared models - Defines domain-agnostic objects (e.g., events like `GoalCreationEvent`) that are shared across services. 
+   - Shared utilities - Includes helpers for common tasks (e.g., event publishing, validation).
 
 ---
 
