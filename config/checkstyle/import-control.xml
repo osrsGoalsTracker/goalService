@@ -16,57 +16,57 @@
     <allow pkg="com.osrsGoalTracker"/>
     <allow pkg="com.osrshiscores"/>
 
-    <!-- character Domain -->
-    <subpackage name="character">
+    <!-- goal Domain -->
+    <subpackage name="goal">
         <!-- Handler Layer -->
         <subpackage name="handler">
-            <allow pkg="com.osrsGoalTracker.character.handler"/>
-            <allow pkg="com.osrsGoalTracker.character.service"/>
-            <allow pkg="com.osrsGoalTracker.character.model"/>
-            <allow pkg="com.osrsGoalTracker.character.di"/>
-            <disallow pkg="com.osrsGoalTracker.character.repository"/>
-            <disallow pkg="com.osrsGoalTracker.character.external"/>
+            <allow pkg="com.osrsGoalTracker.goal.handler"/>
+            <allow pkg="com.osrsGoalTracker.goal.service"/>
+            <allow pkg="com.osrsGoalTracker.goal.model"/>
+            <allow pkg="com.osrsGoalTracker.goal.di"/>
+            <disallow pkg="com.osrsGoalTracker.goal.repository"/>
+            <disallow pkg="com.osrsGoalTracker.goal.external"/>
         </subpackage>
 
         <!-- Service Layer -->
         <subpackage name="service">
-            <allow pkg="com.osrsGoalTracker.character.service"/>
-            <allow pkg="com.osrsGoalTracker.character.repository"/>
-            <allow pkg="com.osrsGoalTracker.character.model"/>
-            <allow pkg="com.osrsGoalTracker.character.external"/>
-            <disallow pkg="com.osrsGoalTracker.character.handler"/>
+            <allow pkg="com.osrsGoalTracker.goal.service"/>
+            <allow pkg="com.osrsGoalTracker.goal.repository"/>
+            <allow pkg="com.osrsGoalTracker.goal.model"/>
+            <allow pkg="com.osrsGoalTracker.goal.external"/>
+            <disallow pkg="com.osrsGoalTracker.goal.handler"/>
         </subpackage>
 
         <!-- Repository Layer -->
         <subpackage name="repository">
-            <allow pkg="com.osrsGoalTracker.character.repository"/>
-            <allow pkg="com.osrsGoalTracker.character.model"/>
-            <disallow pkg="com.osrsGoalTracker.character.handler"/>
-            <disallow pkg="com.osrsGoalTracker.character.service"/>
-            <disallow pkg="com.osrsGoalTracker.character.external"/>
+            <allow pkg="com.osrsGoalTracker.goal.repository"/>
+            <allow pkg="com.osrsGoalTracker.goal.model"/>
+            <disallow pkg="com.osrsGoalTracker.goal.handler"/>
+            <disallow pkg="com.osrsGoalTracker.goal.service"/>
+            <disallow pkg="com.osrsGoalTracker.goal.external"/>
         </subpackage>
 
         <!-- Model Layer -->
         <subpackage name="model">
-            <allow pkg="com.osrsGoalTracker.character.model"/>
-            <disallow pkg="com.osrsGoalTracker.character.handler"/>
-            <disallow pkg="com.osrsGoalTracker.character.service"/>
-            <disallow pkg="com.osrsGoalTracker.character.repository"/>
-            <disallow pkg="com.osrsGoalTracker.character.external"/>
+            <allow pkg="com.osrsGoalTracker.goal.model"/>
+            <disallow pkg="com.osrsGoalTracker.goal.handler"/>
+            <disallow pkg="com.osrsGoalTracker.goal.service"/>
+            <disallow pkg="com.osrsGoalTracker.goal.repository"/>
+            <disallow pkg="com.osrsGoalTracker.goal.external"/>
         </subpackage>
 
         <!-- External Layer -->
         <subpackage name="external">
-            <allow pkg="com.osrsGoalTracker.character.external"/>
-            <allow pkg="com.osrsGoalTracker.character.model"/>
-            <disallow pkg="com.osrsGoalTracker.character.handler"/>
-            <disallow pkg="com.osrsGoalTracker.character.service"/>
-            <disallow pkg="com.osrsGoalTracker.character.repository"/>
+            <allow pkg="com.osrsGoalTracker.goal.external"/>
+            <allow pkg="com.osrsGoalTracker.goal.model"/>
+            <disallow pkg="com.osrsGoalTracker.goal.handler"/>
+            <disallow pkg="com.osrsGoalTracker.goal.service"/>
+            <disallow pkg="com.osrsGoalTracker.goal.repository"/>
         </subpackage>
 
         <!-- DI Layer -->
         <subpackage name="di">
-            <allow pkg="com.osrsGoalTracker.character"/>
+            <allow pkg="com.osrsGoalTracker.goal"/>
         </subpackage>
     </subpackage>
 </import-control> 
