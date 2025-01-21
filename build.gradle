@@ -1,0 +1,253 @@
+plugins {
+    id 'java'
+    id 'io.freefair.lombok' version '8.4'
+    id 'checkstyle'
+    id 'jvm-test-suite'
+}
+
+group = 'com.osrsGoalTracker'
+version = '1.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()  // Check local Maven repository first
+    maven { url 'https://jitpack.io' }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    all {
+        resolutionStrategy {
+            force 'com.google.guava:guava:33.0.0-jre'
+            exclude group: 'com.google.collections', module: 'google-collections'
+        }
+    }
+}
+
+// Check if local goalTrackerDao exists
+def localOrchestrationService = file('../orchestrationService')
+def useLocalOrchestrationService = localOrchestrationService.exists()
+
+if (useLocalOrchestrationService) {
+    println "Using local orchestrationService from ${localOrchestrationService.absolutePath}"
+} else {
+    println "Local orchestrationService not found at ${localOrchestrationService.absolutePath}, using JitPack version"
+}
+
+dependencies {
+    // AWS DynamoDB
+    implementation platform('software.amazon.awssdk:bom:2.24.0')
+    implementation 'software.amazon.awssdk:dynamodb'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    
+    // AWS Lambda
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.11.4'
+    implementation 'software.amazon.awssdk:dynamodb:2.21.0'
+    implementation 'software.amazon.awssdk:dynamodb-enhanced:2.21.0'
+    
+    // Guice
+    implementation 'com.google.inject:guice:7.0.0'
+    implementation 'javax.inject:javax.inject:1'
+    
+    // Jackson
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0'
+    
+    // Log4j2
+    implementation 'org.apache.logging.log4j:log4j-core:2.22.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.22.0'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Orchestration Service - Use local project if available, otherwise use JitPack
+    if (useLocalOrchestrationService) {
+        implementation files("${localOrchestrationService}/build/libs/orchestrationService-1.0-SNAPSHOT.jar")
+    } else {
+        implementation 'com.github.osrsGoalsTracker:orchestrationService:1.1.1'
+    }
+}
+
+testing {
+    suites {
+        test {
+            useJUnitJupiter()
+            dependencies {
+                implementation platform('org.junit:junit-bom:5.10.1')
+                implementation 'org.junit.jupiter:junit-jupiter'
+                implementation 'org.mockito:mockito-core:5.8.0'
+                implementation 'org.mockito:mockito-junit-jupiter:5.8.0'
+                implementation 'net.bytebuddy:byte-buddy:1.14.10'
+                implementation 'net.bytebuddy:byte-buddy-agent:1.14.10'
+            }
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+}
+
+// Base Checkstyle configuration
+checkstyle {
+    toolVersion = '10.13.0'
+    maxWarnings = 0
+    ignoreFailures = false
+    showViolations = true
+}
+
+// Create a task for the remote checkstyle
+task remoteCheckstyle(type: Checkstyle) {
+    description = 'Runs checkstyle against remote organization rules'
+    group = 'verification'
+    source 'src/main/java'
+    include '**/*.java'
+    classpath = files()
+    config = resources.text.fromUri("https://raw.githubusercontent.com/osrsGoalsTracker/java-build-config/refs/heads/main/checkstyle/checkstyle.xml")
+}
+
+// Create a task for the layered architecture checkstyle
+task layeredArchitectureCheckstyle(type: Checkstyle) {
+    description = 'Runs checkstyle against local layered architecture rules'
+    group = 'verification'
+    source 'src/main/java'
+    include '**/*.java'
+    classpath = files()
+    configFile = file("${project.rootDir}/config/checkstyle/layered-architecture.xml")
+    configDirectory = file("${project.rootDir}/config/checkstyle")
+}
+
+// Configure all checkstyle tasks
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    exclude '**/build/**'
+    exclude '**/generated/**'
+    exclude '**/target/**'
+}
+
+// Disable the default checkstyle tasks
+tasks.named('checkstyleMain').configure {
+    enabled = false
+}
+
+tasks.named('checkstyleTest').configure {
+    enabled = false
+}
+
+// Create a new task to run both checkstyle configurations
+task allCheckstyle(group: 'verification') {
+    description = 'Runs all checkstyle checks'
+    dependsOn remoteCheckstyle, layeredArchitectureCheckstyle
+}
+
+// Make the check task depend on our custom checkstyle task
+check.dependsOn allCheckstyle
+
+// Git hooks configuration
+task checkGitHooks {
+    doLast {
+        def projectDir = project.projectDir
+        def hookFile = new File(projectDir, '.git/hooks/pre-push')
+        def installScript = new File(projectDir, 'scripts/install-hooks.sh')
+
+        if (!hookFile.exists() || !hookFile.canExecute()) {
+            println "Git hooks not found or not executable. Installing them now..."
+
+            if (!installScript.exists()) {
+                throw new GradleException("Cannot find scripts/install-hooks.sh")
+            }
+
+            // Make the install script executable
+            installScript.setExecutable(true)
+
+            // Execute the install script
+            def result = exec {
+                workingDir projectDir
+                commandLine 'sh', installScript.absolutePath
+                ignoreExitValue = true
+            }
+
+            if (result.exitValue != 0) {
+                throw new GradleException("Failed to install git hooks")
+            }
+        }
+    }
+}
+
+// Lambda handler configurations
+def lambdaHandlers = [
+    'createGoalFromGoalCreationRequestEvent': [
+        handler: 'com.osrsGoalTracker.goal.handler.CreateGoalFromGoalCreationRequestEventHandler',
+        description: 'Handler for creating a goal from a goal creation request event'
+    ]
+]
+
+// Create tasks for each Lambda handler
+def handlerTasks = []
+lambdaHandlers.each { name, config ->
+    def taskName = "${name}Lambda"
+    handlerTasks << taskName
+    tasks.register(taskName, Jar) {
+        archiveBaseName = "${name}-lambda"
+        archiveVersion = project.version
+        archiveClassifier = null
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+        manifest {
+            attributes(
+                'Main-Class': config.handler,
+                'Description': config.description
+            )
+        }
+        
+        from sourceSets.main.output
+        dependsOn configurations.runtimeClasspath
+        from {
+            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
+}
+
+// Task to build all handlers
+task buildAllHandlers {
+    description = 'Builds all Lambda handlers'
+    group = 'build'
+    dependsOn handlerTasks
+}
+
+// Make build task depend on checkGitHooks and buildAllHandlers
+build.finalizedBy buildAllHandlers
+build.dependsOn checkGitHooks
