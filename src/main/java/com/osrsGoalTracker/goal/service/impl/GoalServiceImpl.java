@@ -6,7 +6,8 @@ import com.google.inject.Inject;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
 import com.osrsGoalTracker.goal.service.GoalService;
-
+import com.osrsGoalTracker.hiscore.model.CharacterHiscores;
+import com.osrsGoalTracker.hiscore.service.HiscoresService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -15,15 +16,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GoalServiceImpl implements GoalService {
     private final GoalRepository goalRepository;
+    private final HiscoresService hiscoresService;
 
     /**
      * Constructor for GoalServiceImpl.
      * 
      * @param goalRepository The goal repository.
+     * @param hiscoresService The hiscores service.
      */
     @Inject
-    public GoalServiceImpl(GoalRepository goalRepository) {
+    public GoalServiceImpl(GoalRepository goalRepository, HiscoresService hiscoresService) {
         this.goalRepository = goalRepository;
+        this.hiscoresService = hiscoresService;
     }
 
     /**
@@ -38,6 +42,12 @@ public class GoalServiceImpl implements GoalService {
     public Goal createGoal(Goal goal, long currentProgress) {
         validateGoal(goal, currentProgress);
         log.info("Creating goal for user {} targeting {}", goal.getUserId(), goal.getTargetAttribute());
+        CharacterHiscores characterHiscores = hiscoresService.getCharacterHiscores(goal.getCharacterName());
+    
+        log.info("Character hiscores: {}", characterHiscores);
+
+        // next: put currentProgress into the Goal object. Then should implement a "addGoalProgress" method which
+        // will be the one that calls the hiscores service to get the current progress and then updates the Goal object.
 
         return goalRepository.createGoal(goal, currentProgress);
     }

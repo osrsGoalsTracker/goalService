@@ -10,7 +10,7 @@ import java.time.Instant;
 
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
-
+import com.osrsGoalTracker.hiscore.service.HiscoresService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -23,12 +23,15 @@ class GoalServiceImplTest {
     @Mock
     private GoalRepository goalRepository;
 
+    @Mock
+    private HiscoresService hiscoresService;
+
     private GoalServiceImpl goalService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        goalService = new GoalServiceImpl(goalRepository);
+        goalService = new GoalServiceImpl(goalRepository, hiscoresService);
     }
 
     @Test

@@ -20,7 +20,16 @@ java {
 repositories {
     mavenCentral()
     mavenLocal()  // Check local Maven repository first
-    maven { url 'https://jitpack.io' }
+    maven {
+        url 'https://jitpack.io'
+    }
+    maven {
+        url = uri('https://ogt-147997138125.d.codeartifact.us-west-2.amazonaws.com/maven/ogt/')
+         credentials {
+             username "aws"
+             password System.env.CODEARTIFACT_AUTH_TOKEN
+         }
+    }
 }
 
 configurations {
@@ -89,6 +98,9 @@ dependencies {
     } else {
         implementation 'com.github.osrsGoalsTracker:orchestrationService:1.1.1'
     }
+
+    // Add the hiscore-service dependency with explicit version
+    implementation 'com.osrsGoalTracker:hiscore-service:1.0.0-20250319042506-27cbe3b'
 }
 
 testing {

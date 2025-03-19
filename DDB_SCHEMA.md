@@ -96,6 +96,7 @@ This schema is designed to support a goal tracking and notification platform for
        "userId": "12345",
        "characterName": "Character123",
        "goalId": "a4cae247-df47-45ec-a16d-5c51ec16fe23",
+       "progressValue": 123,
        "timestamp": "2025-01-01T00:00:00Z",
        "createdAt": "2025-01-01T00:00:00Z",
        "updatedAt": "2025-01-01T00:00:00Z"
