@@ -2,77 +2,91 @@ package com.osrsGoalTracker.goal.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.service.GoalService;
-import com.osrsGoalTracker.orchestration.events.GoalProgressUpdateEvent;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 /**
  * Test class for CreateGoalProgressItemHandler.
  */
-public class CreateGoalProgressItemHandlerTest {
-    private CreateGoalProgressItemHandler handler;
+class CreateGoalProgressItemHandlerTest {
+    @Mock
     private GoalService goalService;
-    private ObjectMapper objectMapper;
+
+    @Mock
+    private Context context;
+
+    private CreateGoalProgressItemHandler handler;
 
     @BeforeEach
     void setUp() {
-        goalService = mock(GoalService.class);
-        objectMapper = new ObjectMapper();
+        MockitoAnnotations.openMocks(this);
         handler = new CreateGoalProgressItemHandler(goalService);
     }
 
     @Test
-    void handleRequest_Success() throws Exception {
+    void handleRequest_ValidEvent_CreatesGoalProgress() {
         // Arrange
+        ScheduledEvent event = new ScheduledEvent();
+        Map<String, Object> detail = new HashMap<>();
         String userId = UUID.randomUUID().toString();
         String characterName = "testCharacter";
         String goalId = UUID.randomUUID().toString();
         long progressValue = 1000L;
 
-        GoalProgressUpdateEvent event = new GoalProgressUpdateEvent();
-        event.setUserId(userId);
-        event.setCharacterName(characterName);
-        event.setGoalId(goalId);
-        event.setProgressValue(progressValue);
-
-        APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
-        request.setBody(objectMapper.writeValueAsString(event));
+        detail.put("userId", userId);
+        detail.put("characterName", characterName);
+        detail.put("goalId", goalId);
+        detail.put("progressValue", progressValue);
+        event.setDetail(detail);
 
         doNothing().when(goalService).createGoalProgress(any(Goal.class));
 
         // Act
-        APIGatewayProxyResponseEvent response = handler.handleRequest(request, null);
+        Goal result = handler.handleRequest(event, context);
 
         // Assert
-        assertNotNull(response);
-        assertEquals(200, response.getStatusCode());
+        assertNotNull(result);
+        assertEquals(userId, result.getUserId());
+        assertEquals(characterName, result.getCharacterName());
+        assertEquals(goalId, result.getGoalId());
+        assertEquals(progressValue, result.getCurrentProgress());
         verify(goalService).createGoalProgress(any(Goal.class));
     }
 
     @Test
-    void handleRequest_InvalidRequest_ReturnsError() throws Exception {
+    void handleRequest_NullEvent_ThrowsException() {
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> handler.handleRequest(null, context));
+    }
+
+    @Test
+    void handleRequest_MissingRequiredField_ThrowsException() {
         // Arrange
-        APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
-        request.setBody("invalid");
+        ScheduledEvent event = new ScheduledEvent();
+        Map<String, Object> detail = new HashMap<>();
+        detail.put("userId", "testUser");
+        // Missing required fields
+        event.setDetail(detail);
 
-        // Act
-        APIGatewayProxyResponseEvent response = handler.handleRequest(request, null);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(500, response.getStatusCode());
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> handler.handleRequest(event, context));
     }
 }

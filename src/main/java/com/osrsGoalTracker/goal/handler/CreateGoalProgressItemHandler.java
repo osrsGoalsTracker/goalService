@@ -1,9 +1,12 @@
 package com.osrsGoalTracker.goal.handler;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -17,17 +20,14 @@ import com.osrsGoalTracker.orchestration.events.GoalProgressUpdateEvent;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * AWS Lambda handler for creating goal progress items.
- * This handler receives an API Gateway request with goal progress details
- * and creates a new progress record for the specified goal.
+ * AWS Lambda handler for processing goal progress update events from
+ * EventBridge.
+ * Validates the event and creates a new progress record for the specified goal.
  */
 @Slf4j
-public class CreateGoalProgressItemHandler
-        implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class CreateGoalProgressItemHandler implements RequestHandler<ScheduledEvent, Goal> {
     private final GoalService goalService;
     private final ObjectMapper objectMapper;
-    private static final int HTTP_OK = 200;
-    private static final int HTTP_INTERNAL_SERVER_ERROR = 500;
 
     /**
      * Default constructor that initializes dependencies using Guice.
@@ -54,43 +54,67 @@ public class CreateGoalProgressItemHandler
     }
 
     /**
-     * Handles the API Gateway request by creating a new goal progress item.
+     * Handles the scheduled event by validating the event detail and creating a
+     * new goal progress record.
      * 
-     * @param request
-     *            The API Gateway request containing the goal progress details.
+     * @param event
+     *            The scheduled event containing the details.
      * @param context
      *            The AWS Lambda context.
-     * @return The API Gateway response.
+     * @return The updated Goal
+     * @throws IllegalArgumentException
+     *             if the event or event detail is null or if
+     *             any required fields are missing.
      */
     @Override
-    public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent request, Context context) {
-        try {
-            log.info("Received request: {}", request.getBody());
-            GoalProgressUpdateEvent progressRequest = objectMapper.readValue(request.getBody(),
-                    GoalProgressUpdateEvent.class);
-            log.info("Creating goal progress for user: {}, character: {}, goalId: {}",
-                    progressRequest.getUserId(), progressRequest.getCharacterName(), progressRequest.getGoalId());
+    public Goal handleRequest(ScheduledEvent event, Context context) {
+        if (event == null || event.getDetail() == null) {
+            throw new IllegalArgumentException("Event or event detail cannot be null");
+        }
 
-            // Convert event to Goal object
-            Goal goal = Goal.builder()
-                    .userId(progressRequest.getUserId())
-                    .characterName(progressRequest.getCharacterName())
-                    .goalId(progressRequest.getGoalId())
-                    .currentProgress(progressRequest.getProgressValue())
-                    .build();
+        validateEventDetail(event);
 
-            goalService.createGoalProgress(goal);
+        GoalProgressUpdateEvent progressEvent = objectMapper.convertValue(event.getDetail(),
+                GoalProgressUpdateEvent.class);
+        log.info("GoalProgressUpdateEvent: {}", progressEvent);
 
-            APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
-            response.setStatusCode(HTTP_OK);
-            response.setBody("{\"message\":\"Goal progress created successfully\"}");
-            return response;
-        } catch (Exception e) {
-            log.error("Error creating goal progress: {}", e.getMessage(), e);
-            APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
-            response.setStatusCode(HTTP_INTERNAL_SERVER_ERROR);
-            response.setBody("{\"error\":\"" + e.getMessage() + "\"}");
-            return response;
+        Goal goal = Goal.builder()
+                .userId(progressEvent.getUserId())
+                .characterName(progressEvent.getCharacterName())
+                .goalId(progressEvent.getGoalId())
+                .currentProgress(progressEvent.getProgressValue())
+                .build();
+
+        goalService.createGoalProgress(goal);
+        return goal;
+    }
+
+    /**
+     * Validates the required fields in the event detail.
+     *
+     * @param event
+     *            The scheduled event containing the details.
+     * @throws IllegalArgumentException
+     *             if any required field is missing.
+     */
+    private void validateEventDetail(ScheduledEvent event) {
+        if (event == null || event.getDetail() == null) {
+            throw new IllegalArgumentException("Event or event detail cannot be null");
+        }
+
+        List<String> requiredFields = Arrays.asList(
+                "userId",
+                "characterName",
+                "goalId",
+                "progressValue");
+
+        List<String> missingFields = requiredFields.stream()
+                .filter(field -> !event.getDetail().containsKey(field))
+                .collect(Collectors.toList());
+
+        if (!missingFields.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Event detail is missing required fields: " + String.join(", ", missingFields));
         }
     }
 }

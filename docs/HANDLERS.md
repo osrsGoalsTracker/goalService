@@ -67,6 +67,21 @@ public class SomeHandler implements RequestHandler<APIGatewayProxyRequestEvent, 
 }
 ```
 
+#### CreateGoalProgressItemHandler
+- **Source**: EventBridge
+- **Package**: `com.osrsGoalTracker.goal.handler.CreateGoalProgressItemHandler`
+- **Event**: `GoalProgressUpdateEvent`
+- **Description**: Processes goal progress update events from EventBridge, creating new progress records for existing goals.
+- **Example Event**:
+```json
+{
+    "userId": "123",
+    "characterName": "PlayerOne",
+    "goalId": "456",
+    "progressValue": 750000
+}
+```
+
 ## Error Handling
 
 All handlers use a standardized error handling approach:
