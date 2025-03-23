@@ -8,7 +8,6 @@
 - Senior SDE Practices: Write code like a senior software engineer—clean, maintainable, and efficient.
 - Always use Lombok @Value and @Builder annotations for data objects. Use @Data with NoArgsConstructor for request objects.
 - Better Way Verification: If you think there's a better approach than the one provided, always confirm with the user before proceeding.
-- If you ever have questions about how to use the Goals Tracker DAO, you should curl the README.md file at the URL https://raw.githubusercontent.com/osrsGoalsTracker/goalTrackerDao/refs/heads/main/README.md
 - if you ever have questions about how to use the osrs hiscore client, you should curl the README.md file at the URL https://raw.githubusercontent.com/osrsGoalsTracker/osrs-hiscores/refs/heads/main/README.md
 - avoid using full class paths in your code (like com.osrs.goals.persistence.pojo.dao.User), instead use the import statements to import the classes you need. If there are conflicts, try to be creative in order to avoid them.
 - Always use 4 spaces for indentation.

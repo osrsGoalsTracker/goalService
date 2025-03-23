@@ -3,10 +3,10 @@ package com.osrsGoalTracker.goal.service.impl;
 import java.time.Instant;
 
 import com.google.inject.Inject;
+import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
 import com.osrsGoalTracker.goal.service.GoalService;
-import com.osrsGoalTracker.hiscore.service.HiscoresService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,18 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GoalServiceImpl implements GoalService {
     private final GoalRepository goalRepository;
-    private final HiscoresService hiscoresService;
 
     /**
      * Constructor for GoalServiceImpl.
      * 
-     * @param goalRepository  The goal repository.
-     * @param hiscoresService The hiscores service.
+     * @param goalRepository The goal repository.
      */
     @Inject
-    public GoalServiceImpl(GoalRepository goalRepository, HiscoresService hiscoresService) {
+    public GoalServiceImpl(GoalRepository goalRepository) {
         this.goalRepository = goalRepository;
-        this.hiscoresService = hiscoresService;
     }
 
     /**
@@ -44,12 +41,35 @@ public class GoalServiceImpl implements GoalService {
         return goalRepository.createGoal(goal);
     }
 
+    /**
+     * Creates a new goal progress item.
+     *
+     * @param request The request containing the goal progress details
+     * @throws IllegalArgumentException if the request is invalid
+     */
+    @Override
+    public void createGoalProgress(GoalProgressEvent request) {
+        validateProgressRequest(request);
+        log.info("Creating goal progress for user {} goal {}", request.getUserId(), request.getGoalId());
+        goalRepository.createGoalProgress(request);
+    }
+
     private void validateGoal(Goal goal) {
         validateGoalNotNull(goal);
         validateRequiredFields(goal);
         validateTargetValue(goal.getTargetValue());
         validateCurrentProgress(goal.getCurrentProgress());
         validateTargetDate(goal.getTargetDate());
+    }
+
+    private void validateProgressRequest(GoalProgressEvent request) {
+        if (request == null) {
+            throw new IllegalArgumentException("request cannot be null");
+        }
+        validateField(request.getUserId(), "userId");
+        validateField(request.getCharacterName(), "characterName");
+        validateField(request.getGoalId(), "goalId");
+        validateCurrentProgress(request.getProgressValue());
     }
 
     private void validateGoalNotNull(Goal goal) {
