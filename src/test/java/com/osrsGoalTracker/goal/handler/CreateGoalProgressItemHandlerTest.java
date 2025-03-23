@@ -14,7 +14,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.service.GoalService;
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
+import com.osrsGoalTracker.orchestration.events.GoalProgressUpdateEvent;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ public class CreateGoalProgressItemHandlerTest {
         String goalId = UUID.randomUUID().toString();
         long progressValue = 1000L;
 
-        GoalProgressEvent event = new GoalProgressEvent();
+        GoalProgressUpdateEvent event = new GoalProgressUpdateEvent();
         event.setUserId(userId);
         event.setCharacterName(characterName);
         event.setGoalId(goalId);

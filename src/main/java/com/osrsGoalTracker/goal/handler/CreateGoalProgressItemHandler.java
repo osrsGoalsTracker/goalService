@@ -12,7 +12,7 @@ import com.google.inject.Injector;
 import com.osrsGoalTracker.goal.di.GoalModule;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.service.GoalService;
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
+import com.osrsGoalTracker.orchestration.events.GoalProgressUpdateEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,8 +65,9 @@ public class CreateGoalProgressItemHandler
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent request, Context context) {
         try {
-            GoalProgressEvent progressRequest = objectMapper.readValue(request.getBody(),
-                    GoalProgressEvent.class);
+            log.info("Received request: {}", request.getBody());
+            GoalProgressUpdateEvent progressRequest = objectMapper.readValue(request.getBody(),
+                    GoalProgressUpdateEvent.class);
             log.info("Creating goal progress for user: {}, character: {}, goalId: {}",
                     progressRequest.getUserId(), progressRequest.getCharacterName(), progressRequest.getGoalId());
 
