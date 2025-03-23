@@ -1,6 +1,5 @@
 package com.osrsGoalTracker.goal.service;
 
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 
 /**
@@ -10,17 +9,21 @@ public interface GoalService {
     /**
      * Creates a new goal.
      *
-     * @param goal The goal to create
+     * @param goal
+     *            The goal to create
      * @return The created goal
-     * @throws IllegalArgumentException if the goal is invalid
+     * @throws IllegalArgumentException
+     *             if the goal is invalid
      */
     Goal createGoal(Goal goal);
 
     /**
      * Creates a new goal progress item.
      *
-     * @param request The request containing the goal progress details
-     * @throws IllegalArgumentException if the request is invalid
+     * @param goal
+     *            The goal with updated progress
+     * @throws IllegalArgumentException
+     *             if the goal is invalid
      */
-    void createGoalProgress(GoalProgressEvent request);
+    void createGoalProgress(Goal goal);
 }

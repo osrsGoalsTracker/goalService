@@ -13,13 +13,11 @@ import static org.mockito.Mockito.when;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
-import com.osrsGoalTracker.goal.service.impl.GoalServiceImpl;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for GoalServiceImpl.
@@ -120,16 +118,16 @@ public class GoalServiceImplTest {
         @Test
         void createGoalProgress_Success() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                doNothing().when(goalRepository).createGoalProgress(any(GoalProgressEvent.class));
+                Goal goal = createValidGoal();
+                doNothing().when(goalRepository).createGoalProgress(any(Goal.class));
 
                 // Act & Assert
-                assertDoesNotThrow(() -> service.createGoalProgress(request));
-                verify(goalRepository).createGoalProgress(request);
+                assertDoesNotThrow(() -> service.createGoalProgress(goal));
+                verify(goalRepository).createGoalProgress(goal);
         }
 
         @Test
-        void createGoalProgress_NullRequest_ThrowsException() {
+        void createGoalProgress_NullGoal_ThrowsException() {
                 // Act & Assert
                 assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(null));
         }
@@ -137,41 +135,41 @@ public class GoalServiceImplTest {
         @Test
         void createGoalProgress_EmptyUserId_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setUserId("");
+                Goal goal = createValidGoal();
+                goal.setUserId("");
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(goal));
         }
 
         @Test
         void createGoalProgress_EmptyCharacterName_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setCharacterName("");
+                Goal goal = createValidGoal();
+                goal.setCharacterName("");
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(goal));
         }
 
         @Test
         void createGoalProgress_EmptyGoalId_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setGoalId("");
+                Goal goal = createValidGoal();
+                goal.setGoalId("");
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(goal));
         }
 
         @Test
         void createGoalProgress_NegativeProgressValue_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setProgressValue(-1);
+                Goal goal = createValidGoal();
+                goal.setCurrentProgress(-1);
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> service.createGoalProgress(goal));
         }
 
         private Goal createValidGoal() {
@@ -185,15 +183,7 @@ public class GoalServiceImplTest {
                                 .targetDate(Instant.now().plusSeconds(86400))
                                 .notificationChannelType("SMS")
                                 .frequency("daily")
+                                .goalId(UUID.randomUUID().toString())
                                 .build();
-        }
-
-        private GoalProgressEvent createValidProgressRequest() {
-                GoalProgressEvent request = new GoalProgressEvent();
-                request.setUserId(UUID.randomUUID().toString());
-                request.setCharacterName("testCharacter");
-                request.setGoalId(UUID.randomUUID().toString());
-                request.setProgressValue(1000L);
-                return request;
         }
 }

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,11 +13,9 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.UUID;
 
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.impl.DynamoItem.DynamoGoalMetadataItem;
 import com.osrsGoalTracker.goal.repository.impl.DynamoItem.DynamoGoalProgressItem;
-import com.osrsGoalTracker.goal.repository.impl.GoalRepositoryImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -174,17 +171,17 @@ public class GoalRepositoryImplTest {
         @Test
         void createGoalProgress_Success() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
+                Goal goal = createValidGoal();
                 when(dynamoDbClient.transactWriteItems(any(TransactWriteItemsRequest.class)))
                                 .thenReturn(TransactWriteItemsResponse.builder().build());
 
                 // Act & Assert
-                assertDoesNotThrow(() -> repository.createGoalProgress(request));
+                assertDoesNotThrow(() -> repository.createGoalProgress(goal));
                 verify(dynamoDbClient).transactWriteItems(any(TransactWriteItemsRequest.class));
         }
 
         @Test
-        void createGoalProgress_NullRequest_ThrowsException() {
+        void createGoalProgress_NullGoal_ThrowsException() {
                 // Act & Assert
                 assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(null));
         }
@@ -192,41 +189,41 @@ public class GoalRepositoryImplTest {
         @Test
         void createGoalProgress_EmptyUserId_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setUserId("");
+                Goal goal = createValidGoal();
+                goal.setUserId("");
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(goal));
         }
 
         @Test
         void createGoalProgress_EmptyCharacterName_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setCharacterName("");
+                Goal goal = createValidGoal();
+                goal.setCharacterName("");
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(goal));
         }
 
         @Test
         void createGoalProgress_EmptyGoalId_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setGoalId("");
+                Goal goal = createValidGoal();
+                goal.setGoalId("");
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(goal));
         }
 
         @Test
         void createGoalProgress_NegativeProgressValue_ThrowsException() {
                 // Arrange
-                GoalProgressEvent request = createValidProgressRequest();
-                request.setProgressValue(-1);
+                Goal goal = createValidGoal();
+                goal.setCurrentProgress(-1);
 
                 // Act & Assert
-                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(request));
+                assertThrows(IllegalArgumentException.class, () -> repository.createGoalProgress(goal));
         }
 
         private Goal createValidGoal() {
@@ -240,15 +237,7 @@ public class GoalRepositoryImplTest {
                                 .targetDate(Instant.now().plusSeconds(86400))
                                 .notificationChannelType("SMS")
                                 .frequency("daily")
+                                .goalId(UUID.randomUUID().toString())
                                 .build();
-        }
-
-        private GoalProgressEvent createValidProgressRequest() {
-                GoalProgressEvent request = new GoalProgressEvent();
-                request.setUserId(UUID.randomUUID().toString());
-                request.setCharacterName("testCharacter");
-                request.setGoalId(UUID.randomUUID().toString());
-                request.setProgressValue(1000L);
-                return request;
         }
 }

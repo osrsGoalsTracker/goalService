@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import com.google.inject.Inject;
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
 import com.osrsGoalTracker.goal.repository.impl.DynamoItem.DynamoGoalMetadataItem;
@@ -31,9 +30,12 @@ public class GoalRepositoryImpl implements GoalRepository {
         /**
          * Constructor for GoalRepositoryImpl.
          *
-         * @param dynamoDbClient The DynamoDB client.
-         * @param metadataTable  The DynamoDB table for goal metadata.
-         * @param progressTable  The DynamoDB table for goal progress.
+         * @param dynamoDbClient
+         *                The DynamoDB client.
+         * @param metadataTable
+         *                The DynamoDB table for goal metadata.
+         * @param progressTable
+         *                The DynamoDB table for goal progress.
          */
         @Inject
         public GoalRepositoryImpl(
@@ -69,18 +71,10 @@ public class GoalRepositoryImpl implements GoalRepository {
                 validateStringNotEmpty(goal.getCharacterName(), "characterName");
                 validateStringNotEmpty(goal.getTargetAttribute(), "targetAttribute");
                 validateStringNotEmpty(goal.getTargetType(), "targetType");
+                validateStringNotEmpty(goal.getGoalId(), "goalId");
                 validateNotNull(goal.getTargetValue(), "targetValue");
                 validateNotNull(goal.getCurrentProgress(), "currentProgress");
                 validateNonNegative(goal.getCurrentProgress(), "currentProgress");
-        }
-
-        private void validateProgressRequest(GoalProgressEvent request) {
-                validateNotNull(request, "request");
-                validateStringNotEmpty(request.getUserId(), "userId");
-                validateStringNotEmpty(request.getCharacterName(), "characterName");
-                validateStringNotEmpty(request.getGoalId(), "goalId");
-                validateNotNull(request.getProgressValue(), "progressValue");
-                validateNonNegative(request.getProgressValue(), "progressValue");
         }
 
         private DynamoGoalMetadataItem createMetadataItem(String userId, String characterName, String goalId,
@@ -231,31 +225,31 @@ public class GoalRepositoryImpl implements GoalRepository {
         }
 
         @Override
-        public void createGoalProgress(GoalProgressEvent request) {
-                validateProgressRequest(request);
+        public void createGoalProgress(Goal goal) {
+                validateGoal(goal);
 
                 log.info("Creating goal progress for user: {}, character: {}, goalId: {}",
-                                request.getUserId(), request.getCharacterName(), request.getGoalId());
+                                goal.getUserId(), goal.getCharacterName(), goal.getGoalId());
 
                 Instant now = Instant.now();
 
                 // Create transaction request with progress items
                 TransactWriteItemsRequest transactionRequest = createProgressTransactionRequest(
-                                request.getUserId(),
-                                request.getCharacterName(),
-                                request.getGoalId(),
+                                goal.getUserId(),
+                                goal.getCharacterName(),
+                                goal.getGoalId(),
                                 now,
-                                request.getProgressValue());
+                                goal.getCurrentProgress());
 
                 log.debug("Initiating transaction to create goal progress records");
 
                 try {
                         dynamoDbClient.transactWriteItems(transactionRequest);
                         log.info("Successfully created goal progress for user: {}, character: {}, goalId: {}",
-                                        request.getUserId(), request.getCharacterName(), request.getGoalId());
+                                        goal.getUserId(), goal.getCharacterName(), goal.getGoalId());
                 } catch (Exception e) {
                         log.error("Failed to create goal progress for user: {}, character: {}, goalId: {}, error: {}",
-                                        request.getUserId(), request.getCharacterName(), request.getGoalId(),
+                                        goal.getUserId(), goal.getCharacterName(), goal.getGoalId(),
                                         e.getMessage());
                         throw e;
                 }

@@ -7,12 +7,14 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.amazonaws.services.lambda.runtime.Context;
+import java.util.UUID;
+
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
+import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.service.GoalService;
+import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,36 +37,39 @@ public class CreateGoalProgressItemHandlerTest {
     @Test
     void handleRequest_Success() throws Exception {
         // Arrange
-        GoalProgressEvent request = new GoalProgressEvent();
-        request.setUserId("testUser");
-        request.setCharacterName("testCharacter");
-        request.setGoalId("testGoalId");
-        request.setProgressValue(1000L);
+        String userId = UUID.randomUUID().toString();
+        String characterName = "testCharacter";
+        String goalId = UUID.randomUUID().toString();
+        long progressValue = 1000L;
 
-        APIGatewayProxyRequestEvent input = new APIGatewayProxyRequestEvent();
-        input.setBody(objectMapper.writeValueAsString(request));
-        Context context = mock(Context.class);
+        GoalProgressEvent event = new GoalProgressEvent();
+        event.setUserId(userId);
+        event.setCharacterName(characterName);
+        event.setGoalId(goalId);
+        event.setProgressValue(progressValue);
 
-        doNothing().when(goalService).createGoalProgress(any(GoalProgressEvent.class));
+        APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
+        request.setBody(objectMapper.writeValueAsString(event));
+
+        doNothing().when(goalService).createGoalProgress(any(Goal.class));
 
         // Act
-        APIGatewayProxyResponseEvent response = handler.handleRequest(input, context);
+        APIGatewayProxyResponseEvent response = handler.handleRequest(request, null);
 
         // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCode());
-        verify(goalService).createGoalProgress(any(GoalProgressEvent.class));
+        verify(goalService).createGoalProgress(any(Goal.class));
     }
 
     @Test
     void handleRequest_InvalidRequest_ReturnsError() throws Exception {
         // Arrange
-        APIGatewayProxyRequestEvent input = new APIGatewayProxyRequestEvent();
-        input.setBody("invalid json");
-        Context context = mock(Context.class);
+        APIGatewayProxyRequestEvent request = new APIGatewayProxyRequestEvent();
+        request.setBody("invalid");
 
         // Act
-        APIGatewayProxyResponseEvent response = handler.handleRequest(input, context);
+        APIGatewayProxyResponseEvent response = handler.handleRequest(request, null);
 
         // Assert
         assertNotNull(response);

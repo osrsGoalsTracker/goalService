@@ -3,7 +3,6 @@ package com.osrsGoalTracker.goal.service.impl;
 import java.time.Instant;
 
 import com.google.inject.Inject;
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
 import com.osrsGoalTracker.goal.service.GoalService;
@@ -20,7 +19,8 @@ public class GoalServiceImpl implements GoalService {
     /**
      * Constructor for GoalServiceImpl.
      * 
-     * @param goalRepository The goal repository.
+     * @param goalRepository
+     *            The goal repository.
      */
     @Inject
     public GoalServiceImpl(GoalRepository goalRepository) {
@@ -30,13 +30,15 @@ public class GoalServiceImpl implements GoalService {
     /**
      * Creates a new goal.
      *
-     * @param goal The goal to create
+     * @param goal
+     *            The goal to create
      * @return The created goal
-     * @throws IllegalArgumentException if the goal is invalid
+     * @throws IllegalArgumentException
+     *             if the goal is invalid
      */
     @Override
     public Goal createGoal(Goal goal) {
-        validateGoal(goal);
+        validateGoalForCreation(goal);
         log.info("Creating goal for user {} targeting {}", goal.getUserId(), goal.getTargetAttribute());
         return goalRepository.createGoal(goal);
     }
@@ -44,32 +46,30 @@ public class GoalServiceImpl implements GoalService {
     /**
      * Creates a new goal progress item.
      *
-     * @param request The request containing the goal progress details
-     * @throws IllegalArgumentException if the request is invalid
+     * @param goal
+     *            The goal with updated progress
+     * @throws IllegalArgumentException
+     *             if the goal is invalid
      */
     @Override
-    public void createGoalProgress(GoalProgressEvent request) {
-        validateProgressRequest(request);
-        log.info("Creating goal progress for user {} goal {}", request.getUserId(), request.getGoalId());
-        goalRepository.createGoalProgress(request);
+    public void createGoalProgress(Goal goal) {
+        validateGoalForProgress(goal);
+        log.info("Creating goal progress for user {} goal {}", goal.getUserId(), goal.getGoalId());
+        goalRepository.createGoalProgress(goal);
     }
 
-    private void validateGoal(Goal goal) {
+    private void validateGoalForCreation(Goal goal) {
         validateGoalNotNull(goal);
-        validateRequiredFields(goal);
+        validateRequiredFieldsForCreation(goal);
         validateTargetValue(goal.getTargetValue());
         validateCurrentProgress(goal.getCurrentProgress());
         validateTargetDate(goal.getTargetDate());
     }
 
-    private void validateProgressRequest(GoalProgressEvent request) {
-        if (request == null) {
-            throw new IllegalArgumentException("request cannot be null");
-        }
-        validateField(request.getUserId(), "userId");
-        validateField(request.getCharacterName(), "characterName");
-        validateField(request.getGoalId(), "goalId");
-        validateCurrentProgress(request.getProgressValue());
+    private void validateGoalForProgress(Goal goal) {
+        validateGoalNotNull(goal);
+        validateRequiredFieldsForProgress(goal);
+        validateCurrentProgress(goal.getCurrentProgress());
     }
 
     private void validateGoalNotNull(Goal goal) {
@@ -78,10 +78,17 @@ public class GoalServiceImpl implements GoalService {
         }
     }
 
-    private void validateRequiredFields(Goal goal) {
+    private void validateRequiredFieldsForCreation(Goal goal) {
         validateField(goal.getUserId(), "userId");
         validateField(goal.getCharacterName(), "characterName");
         validateField(goal.getTargetAttribute(), "targetAttribute");
+        validateField(goal.getTargetType(), "targetType");
+    }
+
+    private void validateRequiredFieldsForProgress(Goal goal) {
+        validateField(goal.getUserId(), "userId");
+        validateField(goal.getCharacterName(), "characterName");
+        validateField(goal.getGoalId(), "goalId");
     }
 
     private void validateField(String value, String fieldName) {

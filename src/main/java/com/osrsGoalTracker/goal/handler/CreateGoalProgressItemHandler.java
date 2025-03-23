@@ -10,8 +10,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.osrsGoalTracker.goal.di.GoalModule;
-import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
+import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.service.GoalService;
+import com.osrsGoalTracker.orchestration.events.GoalProgressEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +41,8 @@ public class CreateGoalProgressItemHandler
     /**
      * Test constructor that accepts a GoalService instance.
      * 
-     * @param goalService The service to use for goal progress creation.
+     * @param goalService
+     *            The service to use for goal progress creation.
      */
     public CreateGoalProgressItemHandler(GoalService goalService) {
         this.goalService = goalService;
@@ -52,8 +54,10 @@ public class CreateGoalProgressItemHandler
     /**
      * Handles the API Gateway request by creating a new goal progress item.
      * 
-     * @param request The API Gateway request containing the goal progress details.
-     * @param context The AWS Lambda context.
+     * @param request
+     *            The API Gateway request containing the goal progress details.
+     * @param context
+     *            The AWS Lambda context.
      * @return The API Gateway response.
      */
     @Override
@@ -64,7 +68,15 @@ public class CreateGoalProgressItemHandler
             log.info("Creating goal progress for user: {}, character: {}, goalId: {}",
                     progressRequest.getUserId(), progressRequest.getCharacterName(), progressRequest.getGoalId());
 
-            goalService.createGoalProgress(progressRequest);
+            // Convert event to Goal object
+            Goal goal = Goal.builder()
+                    .userId(progressRequest.getUserId())
+                    .characterName(progressRequest.getCharacterName())
+                    .goalId(progressRequest.getGoalId())
+                    .currentProgress(progressRequest.getProgressValue())
+                    .build();
+
+            goalService.createGoalProgress(goal);
 
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
             response.setStatusCode(200);
