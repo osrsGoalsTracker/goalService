@@ -77,6 +77,15 @@ public class GoalRepositoryImpl implements GoalRepository {
                 validateNonNegative(goal.getCurrentProgress(), "currentProgress");
         }
 
+        private void validateGoalForProgress(Goal goal) {
+                validateNotNull(goal, "goal");
+                validateStringNotEmpty(goal.getUserId(), "userId");
+                validateStringNotEmpty(goal.getCharacterName(), "characterName");
+                validateStringNotEmpty(goal.getGoalId(), "goalId");
+                validateNotNull(goal.getCurrentProgress(), "currentProgress");
+                validateNonNegative(goal.getCurrentProgress(), "currentProgress");
+        }
+
         private DynamoGoalMetadataItem createMetadataItem(String userId, String characterName, String goalId,
                         Goal goal, Instant timestamp) {
                 return DynamoGoalMetadataItem.builder()
@@ -226,7 +235,7 @@ public class GoalRepositoryImpl implements GoalRepository {
 
         @Override
         public void createGoalProgress(Goal goal) {
-                validateGoal(goal);
+                validateGoalForProgress(goal);
 
                 log.info("Creating goal progress for user: {}, character: {}, goalId: {}",
                                 goal.getUserId(), goal.getCharacterName(), goal.getGoalId());
