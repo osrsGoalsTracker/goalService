@@ -7,12 +7,11 @@ import com.osrsGoalTracker.goal.model.Goal;
  */
 public interface GoalService {
     /**
-     * Creates a new goal with the current progress.
+     * Creates a new goal.
      *
-     * @param goal            The goal to create
-     * @param currentProgress The current progress towards the goal
+     * @param goal The goal to create
      * @return The created goal
      * @throws IllegalArgumentException if the goal is invalid
      */
-    Goal createGoal(Goal goal, long currentProgress);
+    Goal createGoal(Goal goal);
 }

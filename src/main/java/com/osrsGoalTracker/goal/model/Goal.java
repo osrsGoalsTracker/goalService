@@ -25,7 +25,7 @@ public class Goal {
      * The name of the character this goal is for.
      */
     private String characterName;
-    
+
     /**
      * The skill or activity being tracked (e.g., "WOODCUTTING", "BOUNTY_HUNTER").
      */
@@ -40,6 +40,11 @@ public class Goal {
      * The target value to achieve.
      */
     private long targetValue;
+
+    /**
+     * The current progress towards the goal.
+     */
+    private long currentProgress;
 
     /**
      * The date by which to achieve the goal.

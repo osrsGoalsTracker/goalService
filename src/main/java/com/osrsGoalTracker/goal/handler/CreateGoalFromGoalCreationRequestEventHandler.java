@@ -79,12 +79,13 @@ public class CreateGoalFromGoalCreationRequestEventHandler implements RequestHan
                 .targetAttribute(goalEvent.getTargetAttribute())
                 .targetType(goalEvent.getTargetType())
                 .targetValue(goalEvent.getTargetValue())
+                .currentProgress(goalEvent.getCurrentValue())
                 .targetDate(goalEvent.getTargetDate())
                 .notificationChannelType(goalEvent.getNotificationChannelType())
                 .frequency(goalEvent.getFrequency())
                 .build();
 
-        return goalService.createGoal(goal, goalEvent.getCurrentValue());
+        return goalService.createGoal(goal);
     }
 
     /**

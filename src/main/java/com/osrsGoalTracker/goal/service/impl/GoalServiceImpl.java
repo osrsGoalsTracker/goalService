@@ -6,8 +6,8 @@ import com.google.inject.Inject;
 import com.osrsGoalTracker.goal.model.Goal;
 import com.osrsGoalTracker.goal.repository.GoalRepository;
 import com.osrsGoalTracker.goal.service.GoalService;
-import com.osrsGoalTracker.hiscore.model.CharacterHiscores;
 import com.osrsGoalTracker.hiscore.service.HiscoresService;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,7 +21,7 @@ public class GoalServiceImpl implements GoalService {
     /**
      * Constructor for GoalServiceImpl.
      * 
-     * @param goalRepository The goal repository.
+     * @param goalRepository  The goal repository.
      * @param hiscoresService The hiscores service.
      */
     @Inject
@@ -31,32 +31,24 @@ public class GoalServiceImpl implements GoalService {
     }
 
     /**
-     * Creates a new goal with the current progress.
+     * Creates a new goal.
      *
-     * @param goal            The goal to create
-     * @param currentProgress The current progress towards the goal
+     * @param goal The goal to create
      * @return The created goal
      * @throws IllegalArgumentException if the goal is invalid
      */
     @Override
-    public Goal createGoal(Goal goal, long currentProgress) {
-        validateGoal(goal, currentProgress);
+    public Goal createGoal(Goal goal) {
+        validateGoal(goal);
         log.info("Creating goal for user {} targeting {}", goal.getUserId(), goal.getTargetAttribute());
-        CharacterHiscores characterHiscores = hiscoresService.getCharacterHiscores(goal.getCharacterName());
-    
-        log.info("Character hiscores: {}", characterHiscores);
-
-        // next: put currentProgress into the Goal object. Then should implement a "addGoalProgress" method which
-        // will be the one that calls the hiscores service to get the current progress and then updates the Goal object.
-
-        return goalRepository.createGoal(goal, currentProgress);
+        return goalRepository.createGoal(goal);
     }
 
-    private void validateGoal(Goal goal, long currentProgress) {
+    private void validateGoal(Goal goal) {
         validateGoalNotNull(goal);
         validateRequiredFields(goal);
         validateTargetValue(goal.getTargetValue());
-        validateCurrentProgress(currentProgress);
+        validateCurrentProgress(goal.getCurrentProgress());
         validateTargetDate(goal.getTargetDate());
     }
 
