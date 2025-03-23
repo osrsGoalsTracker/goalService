@@ -26,6 +26,8 @@ public class CreateGoalProgressItemHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
     private final GoalService goalService;
     private final ObjectMapper objectMapper;
+    private static final int HTTP_OK = 200;
+    private static final int HTTP_INTERNAL_SERVER_ERROR = 500;
 
     /**
      * Default constructor that initializes dependencies using Guice.
@@ -79,14 +81,14 @@ public class CreateGoalProgressItemHandler
             goalService.createGoalProgress(goal);
 
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
-            response.setStatusCode(200);
-            response.setBody("{\"message\": \"Goal progress created successfully\"}");
+            response.setStatusCode(HTTP_OK);
+            response.setBody("{\"message\":\"Goal progress created successfully\"}");
             return response;
         } catch (Exception e) {
             log.error("Error creating goal progress: {}", e.getMessage(), e);
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
-            response.setStatusCode(500);
-            response.setBody("{\"error\": \"" + e.getMessage() + "\"}");
+            response.setStatusCode(HTTP_INTERNAL_SERVER_ERROR);
+            response.setBody("{\"error\":\"" + e.getMessage() + "\"}");
             return response;
         }
     }

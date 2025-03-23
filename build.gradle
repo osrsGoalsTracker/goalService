@@ -224,6 +224,10 @@ def lambdaHandlers = [
     'createGoalFromGoalCreationRequestEvent': [
         handler: 'com.osrsGoalTracker.goal.handler.CreateGoalFromGoalCreationRequestEventHandler',
         description: 'Handler for creating a goal from a goal creation request event'
+    ],
+    'createGoalProgressItem': [
+        handler: 'com.osrsGoalTracker.goal.handler.CreateGoalProgressItemHandler',
+        description: 'Handler for creating a goal progress item'
     ]
 ]
 
